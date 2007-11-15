@@ -41,22 +41,29 @@
 螢幕快照
 
 demo1 展示程式
+
 http://lh5.google.com/wei.hu.tw/RzxWlbZHyLI/AAAAAAAAAGQ/eKp_7rrCdOk/Screenshot-demo1.png
 
 中文輸入法 螢幕快照 1
+
 http://lh3.google.com/wei.hu.tw/RzxWk7ZHyII/AAAAAAAAAF4/poLH0BMVSCU/kiwin-screenshot-ime.png
 
 中文輸入法 螢幕快照 2
+
 http://lh6.google.com/wei.hu.tw/RzxWrrZHyNI/AAAAAAAAAGg/N0UdJ5tH3V4/Screenshot-ime.png
 
 按住滑鼠左鍵來移動一個視窗
+
 http://lh3.google.com/wei.hu.tw/RzxWr7ZHyOI/AAAAAAAAAGo/433Brfc5uZM/Screenshot-movewindow.png
 
 按下右上角的 X 按鈕來關閉一個視窗
+
 http://lh5.google.com/wei.hu.tw/RzxWlbZHyMI/AAAAAAAAAGY/s0-c2--yy5g/Screenshot-destroywindow.png
 
 按下建立視窗按鈕來產生一個新視窗, 這個新視窗會以視窗 7 號來作為其母視窗
+
 http://lh4.google.com/wei.hu.tw/RzxWlLZHyKI/AAAAAAAAAGI/ZWqQBABAmXU/Screenshot-createwindow.png
 
 關閉視窗 1 號 (這個視窗是 demo1 展示程式的主視窗) 將會關閉 demo1 展示程式
+
 http://lh4.google.com/wei.hu.tw/RzxWlLZHyJI/AAAAAAAAAGA/Wn310bgXEP8/Screenshot-closeall.png
