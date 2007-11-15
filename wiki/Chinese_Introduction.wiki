@@ -36,7 +36,7 @@
 
 如果你對這個 kernel patch 有興趣, 可以直接點選下列網址來得到該 kernel patch 更詳細的資訊:
 
-[http://wei-hu-tw.blogspot.com/2007/11/linux-ms-windows-kernel-patch.html 我的 kernel patch homepage ]
+[http://wei-hu-tw.blogspot.com/2007/11/linux-ms-windows-kernel-patch.html 我的 kernel patch]
 
 螢幕快照
 
