@@ -1,0 +1,49 @@
+=簡介=
+
+這個系統叫做 "KiWin GUI system", 取奇異果 (kiwi fruit) 的諧音.
+
+我抓了幾張這個系統的 screenshot, 你如果有興趣, 可在這個網頁的下面觀看到.
+
+  * 關於圖檔方面, 完成了 png format 的讀取, 顯示, 與寫入. 有關這部份的底層 library, 我是利用 libpng 來實做出來. 另外, 有關 png 的 alpha channel, 在 KiWin 中亦可順利無誤的表現出來.
+  * 完成 TrueType 字型的顯示. 這部份的底層 library 是 FreeType2. 這也就是說 KiWin 目前可以順利的顯示中文. 這在 screenshot 中可以看到. 如果想使用中文 TrueType 字型, 可去抓取 Arphic 的 bkai00mp.ttf 或 bsmi00lp.ttf 這兩個檔案, 並放置在 KWDIR/Font 目錄下.
+  * Window system 方面, 具有 parent, child window, main window 架構, 並完成了放大, 縮小, 產生新視窗, 消滅舊視窗, 提昇與降下視窗等功能. 而關於 window system 內部的 clipping 模組則採用了 microwindow 的架構.
+  * 模仿 gnome2 與 Microsoft 內部的組態檔, KiWin 亦實作了一個內部使用的 register file, 儲存了 KiWin 使用到的相關資訊
+  * 我另外替 KiWin 實作了一套輸入法, 目前該套輸入法只支援注音. 輸入法的顯示過程可在 screenshot 中看到. 使用者可由輸入法視窗來選擇所想要輸入的中文字.
+  * KiWin 目前支援的底層 video device 為 frame buffer device, 經測試 24, 32 bit 無問題. 有關 8, 16 bit 顯示模式的程式碼已內建, 但未經測試. 而螢幕解析度並沒有限制, KiWin 會自動偵測目前的螢幕解析度為何 (1024 x 768, 800 x 600, 或 640 x 480, 或其他), 來做出相對應的顯示.
+  * 目前 KiWin 是以 xpm 3 format 作為其 Cursor 圖檔格式. KiWin 的 Cursor 在移動到視窗邊緣時亦會從一般的箭頭形狀改變到對應的雙箭頭形狀.
+  * 目前 KiWin 支援兩種 user component -- pressed button 與 textbox. KiWin 會記憶上一次使用者所按下的 pressed button 為何, 而改變該 pressed button 的顯示情況. 而在 textbox 中使用者可以輸入英文或開啟中文輸入法來輸入中文. (見 screenshot)
+  * 跟 console 模式一樣, 按下 Alt-F1, F2 ... 可以切換到其餘的 virtual terminal.
+  * 按下 Print Screen 鍵可以抓取螢幕的畫面到 KWDIR/SrvBin/kiwin-screenshot.png 檔案中.
+  * KiWin 是以 GPL 版權向外公開, 而筆者亦已確認使用到的 libraries 亦為 GPL 版權.
+
+=如何編譯=
+
+要編譯 KiWin 很簡單, 只要抓回 KiWin source code, 解開在某個目錄下, 並設定 KWDIR 環境變數為該目錄 (i.e. 假設你把解開後的 KiWin 放在 /home/mango 目錄下的話, 你就必須 export KWDIR=/home/mango 才行) , 之後在該目錄下鍵入 make;make program 即可完成 KiWin GUI system 的編譯與安裝. 其中 make 是在完成 KiWin Server 與 client library 的製作, 而 make program 是在完成輸入法, register file, demo program 的編譯與製作.
+
+=如何執行=
+
+進入 KWDIR/SrvBin 目錄下, 你可以 kiwin 執行檔, 執行他就可以啟動整個 KiWin GUI system, 啟動輸入法跟一般的習慣一樣, ctrl-space 就可以啟動之. (在這邊值得注意的是, 由於版權的問題, KiWin 目前並沒有內含 arphic 字型, 所以使用者必須要先想辦法抓取到這兩種字型之後, 放到 KWDIR/Font 目錄下才可順利執行 KiWin GUI system)
+
+如果想要跑 demo program 的話, 按下 Alt-F2, 進入 KWDIR/Program_files/demo1/bin 目錄, 並在該目錄執行 demo1 程式, 即可在螢幕上看見 demo1 program 的執行.
+
+=目前版本=
+
+目前的 KiWin 版本為 0.1pre1 版, 下一版 (預計為 0.2 版) 正在開發中, 預計在下一版中, KiWin GUI system 將會有全新的內部架構與更多的功能.
+
+=一個小型的 bootable-cdrom=
+
+我在 2002 年的 5 月 31 號, 於 slat-tech mailing list 上 release 了之前撰寫的 kernel-patch, 利用該 kernel-patch 可將 linux 藏於 Microsoft windows 系統中, 所以可在一無法安裝 linux 系統的電腦中安裝執行. (比方說該電腦硬碟的所有空間都分給 Microsoft windows 使用, 而無剩餘的空間可供分割) 另外, 藉由筆者在今年 6 月 3 號於 slat-tech mailing list 上 release 的一系列 shell script, 可建立一簡單的 bootable cdrom 來安裝並執行這一經 patch 過後的 linux kernel system. 如今, 藉由 KiWin GUI system 的誕生, 希望能夠使得這整個系統壓縮在 5 MB 的大小內, 初步完成一個小型而堪用的 small linux system.
+
+如果你對這個 kernel patch 有興趣, 可以直接點選下列網址來得到該 kernel patch 更詳細的資訊:
+
+[我的 kernel patch homepage http://www.csie.ntu.edu.tw/~r88052/kernel_patch_1/en/frame.html]
+
+螢幕快照
+
+demo1 展示程式
+中文輸入法 螢幕快照 1
+中文輸入法 螢幕快照 2
+按住滑鼠左鍵來移動一個視窗
+按下右上角的 X 按鈕來關閉一個視窗
+按下建立視窗按鈕來產生一個新視窗, 這個新視窗會以視窗 7 號來作為其母視窗
+關閉視窗 1 號 (這個視窗是 demo1 展示程式的主視窗) 將會關閉 demo1 展示程式
