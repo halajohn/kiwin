@@ -1,0 +1,141 @@
+/* because png stores image pixel data at big endian,
+ * i.e. most significant bit first -> low memory address contents most significant part,
+ *
+ *    low address                          hight address
+ *  ------------------------------------------------------
+ *     r g b | r g b ....
+ *  ------------------------------------------------------
+ * or
+ *
+ *    low address                          hight address
+ *  ------------------------------------------------------
+ *     r g b a | r g b a ....
+ *  ------------------------------------------------------
+ *
+ * but Intel platform stores and _looks_ data in little endian format,
+ * i.e. Intel CPU assumes the least significant part stores at low address space,
+ * so when we retrive pixel data from the "himage->data",
+ * we will get "BGR" or "ABGR" form !!!
+ *
+ * ex:
+ * int i = *(himage->data);
+ * then the format of i will be "BGR" or "ABGR"
+ *
+ * and the framebuffer stores pixel data at "RGB" format,
+ * so we _must_ do the transformation ourself !!!
+ */
+/* NOTE:                                                     bits per channel
+ *                                                                **
+ * --------------------------------------------------------------------------------------------------------
+ * palette, no tRNS, < 8        -> png_set_expand() -> RGB       , 8  (channels = 3, bpp = 24)
+ * palette,  + tRNS, < 8        -> png_set_expand() -> RGBA      , 8  (channels = 4, bpp = 32)
+ * palette, no tRNS, = 8        -> png_set_expand() -> RGB       , 8  (channels = 3, bpp = 24)
+ * palette,  + tRNS, = 8        -> png_set_expand() -> RGBA      , 8  (channels = 4, bpp = 32)
+ * palette,          =16        -> png_set_expand() -> palette   ,16  (channels = 1, bpp = 16) (no effect)
+ *								        
+ * gray   , no tRNS, < 8        -> png_set_expand() -> gray      , 8  (bpp =  8)
+ * gray   ,  + tRNS, < 8        -> png_set_expand() -> GA        , 8  (channels = 2, bpp = 16)
+ * gray   , no tRNS, = 8        -> png_set_expand() -> gray      , 8  (channels = 1, bpp =  8) (no effect)
+ * gray   ,  + tRNS, = 8        -> png_set_expand() -> GA        , 8  (channels = 2, bpp = 16)
+ * gray   , no tRNS, =16        -> png_set_expand() -> gray      ,16  (channels = 1, bpp = 16) (no effect)
+ * gray   ,  + tRNS, =16        -> png_set_expand() -> GA        ,16  (channels = 2, bpp = 32)
+ *
+ * RGB    , no tRNS, = 8        -> png_set_expand() -> RGB       , 8  (channels = 3, bpp = 24) (no effect)
+ * RGB    ,  + tRNS, = 8        -> png_set_expand() -> RGBA      , 8  (channels = 4, bpp = 32)
+ * RGB    , no tRNS, =16        -> png_set_expand() -> RGB       ,16  (channels = 3, bpp = 48) (no effect)
+ * RGB    ,  + tRNS, =16        -> png_set_expand() -> RGBA      ,16  (channels = 4, bpp = 64)
+ * --------------------------------------------------------------------------------------------------------
+ */
+/* ============================
+ *     XPM 3 format example
+ * ============================ */
+///* XPM */
+//static char * mini_desktop_xpm[] = {
+//  /* width height num_colors chars_per_pixel */
+//  "14 14 9 1",
+//  /* colors */
+//  " 	s None	m None	c None",
+//  ".	c #008080",
+//  "X	c black",
+//  "o	c #00ffff",
+//  "O	c #808080",
+//  "+	c #c0c0c0",
+//  "@	c white",
+//  "#	c #808000",
+//  "$	c #ffff00",
+//  /* pixels */
+//  "       .X     ",
+//  "       ..XX   ",
+//  "       ..X XX ",
+//  "      .o..X  X",
+//  "     XXXXXXX X",
+//  "             X",
+//  "            X ",
+//  "  OOOOOOOOOOX ",
+//  "  O+O@@X##++XX",
+//  " O+O@@@X#$##XX",
+//  " O+O@@X#$$$$XX",
+//  "O+XXXX+XXXXXOX",
+//  "O@@@@@@@@@@@X ",
+//  "XXXXXXXXXXXXX ",
+//};
+/* ======================
+ *     end of example
+ * ====================== */
+/* parse xpm header.
+ * -----------------
+ * The XPM format presents a C syntax, in order to provide the ability to include
+ * XPM files in C and C++ programs. It is in fact an array of strings composed of 6
+ * different sections as follows:
+ *
+ *   <Header line>
+ *   <Declaration and Beginning of Assignment line>
+ *   <Values>
+ *   <Colors>
+ *   <Pixels>
+ *   <Extensions>
+ *   <End of Assignment>
+ *
+ * The <Header line> is a comment containing the keyword XPM as follows:
+ *
+ *   / * XPM * /
+ *
+ * The words are separated by a white space which can be composed of space and
+ * tabulation characters.
+ *
+ * The <Declaration and Beginning of Assignment line> must end by a newline
+ * character and is composed as follows:
+ *
+ *   static char* <variable_name>[] = {
+ */
+/* The <Values> section is a string containing 4 or 6 integers in base 10 that correspond
+ * to: the pixmap width and height, the number of colors, the number of characters per pixel
+ * (so there is no limit on the number of colors), and, optionally the hotspot coordinates.
+ *
+ *   <width> <height> <ncolors> <cpp> [<x_hotspot> <y_hotspot>]
+ */
+/* The Colors section contains as many strings as there are colors, and each string is as follows:
+ *   <chars> {<key> <color>}+
+ * Where <chars> is the <chars_per_pixel> length string (not surrounded by anything)
+ * representing the pixels, <color> is the specified color, and <key> is a keyword describing
+ * in which context this color should be used. Currently the keys may have the following values:
+ *
+ *   m  for mono visual
+ *   s  for symbolic name
+ *   g4 for 4-level grayscale
+ *   g  for grayscale with more than 4 levels
+ *   c  for color visual
+ *
+ * Colors can be specified by giving the colorname, a # followed by RGB code, or a
+ * % followed by the HSV code. The symbolic name provides the ability of specifying
+ * the colors at load time and not to hard-code them in the file. Also the string None
+ * can be given as a colorname to mean "transparent". Transparency is handled by providing
+ * a masking bitmap in addition to the pixmap.
+ */
+/* The <Pixels> section is composed by <height> strings of <width> * <chars_per_pixel>
+ * characters, where every <chars_per_pixel> length string must be one of the previously
+ * defined groups in the <Colors> section.
+ *
+ * The <Extensions> section which is empty so far but may contained several strings in future.
+ * Finally the <End of Assignment> section ends the format with a closing brace "}".
+ */
