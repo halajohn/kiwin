@@ -1,0 +1,6 @@
+  * The libpng subsystem is modified from libpng-1.2.5
+  * The libz subsystem is modified from zlib-1.1.4
+  * The freetype subsystem is modified from freetype-2.1.3
+  * The clipping algorithm of window subsystem is modified from microwindows-0.89pre8
+  * The gdm subsystem is modified from gdbm-1.8.3
+  * The xpm subsystem is modified from xpm-3.4k
