@@ -1,0 +1,24 @@
+I find that a description about pthread_getspecific() in the GEF
+(The General Exception-Handling Facility Interface) is usrful to me:
+
+>>--------------------------------------------------------------------<<
+
+PosixThreads has not declared the function, <pthread_getspecific>,
+to be async safe. However, this implementation of GEF requires that
+<pthread_gefspecific> be async-safe.  This is because GEF uses the
+function to determine the exception handler to which to transfer control
+in a multithreaded program. Consequently, to use the asynchronous signal
+support, you must enusre that, for your platform, or operating system,
+the implementation of pthread_getspecific is async-safe.  Fortunately,
+                                                          ^^^^^^^^^^^^
+for several major, or popular, vendors of operating sytems that support
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pthreads, the function, pthread_getspecific, is async-safe. One
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+qualifying operating system is Linux 2.x. Solaris 2.5.1 also appears to
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+have an async-safe pthread_getspecific, although the Solaris
+documentation does not declare the function to be async-safe. You need
+to verify whether pthread_getspecific is async-safe for your operating
+system to be comfortable using it. However, if your program does not use
+GEF to handle asynchronous signals, then you have no cause for concern.

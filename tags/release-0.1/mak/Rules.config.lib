@@ -1,0 +1,375 @@
+# KiWin - A small GUI for the embedded system
+# Copyright (C) <2007>  Wei Hu <wei.hu.tw@gmail.com>
+# 
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+include $(MakDir)/Rules.config.share
+
+LIB_CFLAGS	      	      = -fPIC -Wall -O2 $(INCLUDE_PATH) $(DEFINE_MACRO)
+LIB_CFLAGS_G	      	      = -fPIC -Wall -g3 -gdwarf-2 $(INCLUDE_PATH) $(DEFINE_MACRO_G)
+
+LIB_LIBS                      = -L$(LibDir)
+LIB_LIBS_G                    = -L$(LibDir)
+
+#################
+#    png lib    #
+#################
+
+LIB_KW_PNG_SONAME             = libkwpng.so.0
+LIB_KW_PNG_SONAME_G           = libkwpng_g.so.0
+
+LIB_KW_PNG_NAME               = $(LibDir)/libkwpng.so.0.0
+LIB_KW_PNG_NAME_G             = $(LibDir)/libkwpng_g.so.0.0
+
+LIB_KW_PNG_LNNAME             = $(LibDir)/libkwpng.so
+LIB_KW_PNG_LNNAME_G           = $(LibDir)/libkwpng_g.so
+
+LIB_KW_PNG_LDFLAGS            = -shared -Wl,-soname,$(LIB_KW_PNG_SONAME) $(LIB_LIBS)
+LIB_KW_PNG_LDFLAGS_G	      = -shared -Wl,-soname,$(LIB_KW_PNG_SONAME_G) $(LIB_LIBS_G)
+
+LIB_KW_PNG_LIBS               =
+LIB_KW_PNG_LIBS_G             = 
+
+LibKwPngObjFiles	      = $(ObjDir)/png.o \
+				$(ObjDir)/pngerror.o \
+		        	$(ObjDir)/pnggccrd.o \
+		        	$(ObjDir)/pngget.o \
+		        	$(ObjDir)/pngmem.o \
+		        	$(ObjDir)/pngpread.o \
+		        	$(ObjDir)/pngread.o \
+		        	$(ObjDir)/pngrio.o \
+		        	$(ObjDir)/pngrtran.o \
+		        	$(ObjDir)/pngrutil.o \
+		        	$(ObjDir)/pngset.o \
+		        	$(ObjDir)/pngtrans.o \
+				$(ObjDir)/pngwrite.o \
+				$(ObjDir)/pngwutil.o \
+				$(ObjDir)/pngwtran.o \
+				$(ObjDir)/pngwio.o
+
+LibKwPngObjFiles_g            = $(ObjDir)/png.go \
+		        	$(ObjDir)/pngerror.go \
+		        	$(ObjDir)/pnggccrd.go \
+		        	$(ObjDir)/pngget.go \
+		        	$(ObjDir)/pngmem.go \
+		        	$(ObjDir)/pngpread.go \
+		        	$(ObjDir)/pngread.go \
+		        	$(ObjDir)/pngrio.go \
+				$(ObjDir)/pngrtran.go \
+		        	$(ObjDir)/pngrutil.go \
+		        	$(ObjDir)/pngset.go \
+		        	$(ObjDir)/pngtrans.go \
+				$(ObjDir)/pngwrite.go \
+				$(ObjDir)/pngwutil.go \
+				$(ObjDir)/pngwtran.go \
+				$(ObjDir)/pngwio.go
+
+##################
+#    libz lib    #
+##################
+
+LIB_KW_Z_SONAME               = libkwz.so.0
+LIB_KW_Z_SONAME_G             = libkwz_g.so.0
+
+LIB_KW_Z_NAME                 = $(LibDir)/libkwz.so.0.0
+LIB_KW_Z_NAME_G               = $(LibDir)/libkwz_g.so.0.0
+
+LIB_KW_Z_LNNAME               = $(LibDir)/libkwz.so
+LIB_KW_Z_LNNAME_G             = $(LibDir)/libkwz_g.so
+
+LIB_KW_Z_LDFLAGS              = -shared -Wl,-soname,$(LIB_KW_Z_SONAME) $(LIB_LIBS)
+LIB_KW_Z_LDFLAGS_G            = -shared -Wl,-soname,$(LIB_KW_Z_SONAME_G) $(LIB_LIBS_G)
+
+LIB_KW_Z_LIBS                 =
+LIB_KW_Z_LIBS_G               =
+
+LibKwZObjFiles	              = $(ObjDir)/adler32.o \
+		      		$(ObjDir)/crc32.o \
+		      		$(ObjDir)/infblock.o \
+		      		$(ObjDir)/infcodes.o \
+				$(ObjDir)/inffast.o \
+				$(ObjDir)/inflate.o \
+		      		$(ObjDir)/inftrees.o \
+		      		$(ObjDir)/infutil.o \
+		      		$(ObjDir)/trees.o \
+		      		$(ObjDir)/uncompr.o \
+		      		$(ObjDir)/zutil.o \
+		      		$(ObjDir)/deflate.o
+
+LibKwZObjFiles_g              = $(ObjDir)/adler32.go \
+		      		$(ObjDir)/crc32.go \
+		      		$(ObjDir)/infblock.go \
+		      		$(ObjDir)/infcodes.go \
+		      		$(ObjDir)/inffast.go \
+		      		$(ObjDir)/inflate.go \
+		      		$(ObjDir)/inftrees.go \
+		      		$(ObjDir)/infutil.go \
+		      		$(ObjDir)/trees.go \
+		      		$(ObjDir)/uncompr.go \
+		      		$(ObjDir)/zutil.go \
+		      		$(ObjDir)/deflate.go
+
+######################
+#    freetype lib    #
+######################
+
+LIB_KW_FREETYPE_SONAME        = libkwfreetype.so.0
+LIB_KW_FREETYPE_SONAME_G      = libkwfreetype_g.so.0
+
+LIB_KW_FREETYPE_NAME          = $(LibDir)/libkwfreetype.so.0.0
+LIB_KW_FREETYPE_NAME_G        = $(LibDir)/libkwfreetype_g.so.0.0
+
+LIB_KW_FREETYPE_LNNAME        = $(LibDir)/libkwfreetype.so
+LIB_KW_FREETYPE_LNNAME_G      = $(LibDir)/libkwfreetype_g.so
+
+LIB_KW_FREETYPE_LDFLAGS       = -shared -Wl,-soname,$(LIB_KW_FREETYPE_SONAME) $(LIB_LIBS)
+LIB_KW_FREETYPE_LDFLAGS_G     = -shared -Wl,-soname,$(LIB_KW_FREETYPE_SONAME_G) $(LIB_LIBS_G)
+
+LIB_KW_FREETYPE_LIBS          =
+LIB_KW_FREETYPE_LIBS_G        = 
+
+LibKwFreetypeBaseObjFiles     = $(ObjDir)/ftbase.o \
+				$(ObjDir)/ftglyph.o \
+				$(ObjDir)/ftsystem.o
+LibKwFreetypeCacheObjFiles    = $(ObjDir)/ftcache.o
+LibKwFreetypeTruetypeObjFiles = $(ObjDir)/truetype.o
+LibKwFreetypeAutohintObjFiles = $(ObjDir)/autohint.o
+LibKwFreetypePcfObjFiles      = $(ObjDir)/pcf.o
+LibKwFreetypeRasterObjFiles   = $(ObjDir)/raster.o
+LibKwFreetypeSfntObjFiles     = $(ObjDir)/sfnt.o
+LibKwFreetypeSmoothObjFiles   = $(ObjDir)/smooth.o
+LibKwFreetypeWinfontsObjFiles = $(ObjDir)/winfnt.o
+LibKwFreetypeGzipObjFiles     = $(ObjDir)/ftgzip.o
+
+LibKwFreetypeObjFiles         = $(LibKwFreetypeBaseObjFiles) \
+				$(LibKwFreetypeCacheObjFiles) \
+				$(LibKwFreetypeTruetypeObjFiles) \
+				$(LibKwFreetypeAutohintObjFiles) \
+				$(LibKwFreetypePcfObjFiles) \
+				$(LibKwFreetypeRasterObjFiles) \
+				$(LibKwFreetypeSfntObjFiles) \
+				$(LibKwFreetypeSmoothObjFiles) \
+				$(LibKwFreetypeWinfontsObjFiles) \
+				$(LibKwFreetypeGzipObjFiles)
+
+LibKwFreetypeBaseObjFiles_g     = $(ObjDir)/ftbase.go \
+				  $(ObjDir)/ftglyph.go \
+				  $(ObjDir)/ftsystem.go
+LibKwFreetypeCacheObjFiles_g    = $(ObjDir)/ftcache.go
+LibKwFreetypeTruetypeObjFiles_g = $(ObjDir)/truetype.go
+LibKwFreetypeAutohintObjFiles_g = $(ObjDir)/autohint.go
+LibKwFreetypePcfObjFiles_g      = $(ObjDir)/pcf.go
+LibKwFreetypeRasterObjFiles_g   = $(ObjDir)/raster.go
+LibKwFreetypeSfntObjFiles_g     = $(ObjDir)/sfnt.go
+LibKwFreetypeSmoothObjFiles_g   = $(ObjDir)/smooth.go
+LibKwFreetypeWinfontsObjFiles_g = $(ObjDir)/winfnt.go
+LibKwFreetypeGzipObjFiles_g     = $(ObjDir)/ftgzip.go
+
+LibKwFreetypeObjFiles_g       = $(LibKwFreetypeBaseObjFiles_g) \
+				$(LibKwFreetypeCacheObjFiles_g) \
+				$(LibKwFreetypeTruetypeObjFiles_g) \
+				$(LibKwFreetypeAutohintObjFiles_g) \
+				$(LibKwFreetypePcfObjFiles_g) \
+				$(LibKwFreetypeRasterObjFiles_g) \
+				$(LibKwFreetypeSfntObjFiles_g) \
+				$(LibKwFreetypeSmoothObjFiles_g) \
+				$(LibKwFreetypeWinfontsObjFiles_g) \
+				$(LibKwFreetypeGzipObjFiles_g)
+
+####################
+#    gs cli lib    #
+####################
+
+LIB_KW_GSCLI_SONAME           = libkwgscli.so.0
+LIB_KW_GSCLI_SONAME_G         = libkwgscli_g.so.0
+
+LIB_KW_GSCLI_NAME             = $(LibDir)/libkwgscli.so.0.0
+LIB_KW_GSCLI_NAME_G           = $(LibDir)/libkwgscli_g.so.0.0
+
+LIB_KW_GSCLI_LNNAME           = $(LibDir)/libkwgscli.so
+LIB_KW_GSCLI_LNNAME_G         = $(LibDir)/libkwgscli_g.so
+
+LIB_KW_GSCLI_LDFLAGS          = -shared -Wl,-soname,$(LIB_KW_GSCLI_SONAME) $(LIB_LIBS)
+LIB_KW_GSCLI_LDFLAGS_G        = -shared -Wl,-soname,$(LIB_KW_GSCLI_SONAME_G) $(LIB_LIBS_G)
+
+LIB_KW_GSCLI_LIBS             = -lkwcolor -lkwgdbm -lkwregfile
+LIB_KW_GSCLI_LIBS_G           = -lkwcolor_g -lkwgdbm_g -lkwregfile_g
+
+LibKwGsCliMainObjFiles	      = $(ObjDir)/kwgscli_draw.o \
+				$(ObjDir)/kwgscli_event.o \
+				$(ObjDir)/kwgscli_gc.o \
+				$(ObjDir)/kwgscli_io.o \
+				$(ObjDir)/kwgscli_req.o \
+				$(ObjDir)/kwgscli_wnd.o \
+				$(ObjDir)/kwgscli_wmanager.o
+
+LibKwGsCliMainObjFiles_g      = $(ObjDir)/kwgscli_draw.go \
+				$(ObjDir)/kwgscli_event.go \
+				$(ObjDir)/kwgscli_gc.go \
+				$(ObjDir)/kwgscli_io.go \
+				$(ObjDir)/kwgscli_req.go \
+				$(ObjDir)/kwgscli_wnd.go \
+				$(ObjDir)/kwgscli_wmanager.go
+
+LibKwGsCliObjFiles	      = $(LibKwGsCliMainObjFiles)
+
+LibKwGsCliObjFiles_g	      = $(LibKwGsCliMainObjFiles_g)
+
+##################
+#    gdbm lib    #
+##################
+
+LIB_KW_GDBM_SONAME             = libkwgdbm.so.0
+LIB_KW_GDBM_SONAME_G           = libkwgdbm_g.so.0
+
+LIB_KW_GDBM_NAME               = $(LibDir)/libkwgdbm.so.0.0
+LIB_KW_GDBM_NAME_G             = $(LibDir)/libkwgdbm_g.so.0.0
+
+LIB_KW_GDBM_LNNAME             = $(LibDir)/libkwgdbm.so
+LIB_KW_GDBM_LNNAME_G           = $(LibDir)/libkwgdbm_g.so
+
+LIB_KW_GDBM_LDFLAGS            = -shared -Wl,-soname,$(LIB_KW_GDBM_SONAME) $(LIB_LIBS)
+LIB_KW_GDBM_LDFLAGS_G          = -shared -Wl,-soname,$(LIB_KW_GDBM_SONAME_G) $(LIB_LIBS_G)
+
+LIB_KW_GDBM_LIBS               =
+LIB_KW_GDBM_LIBS_G             =
+
+LibKwGdbmObjFiles	      = $(ObjDir)/bucket.o \
+				$(ObjDir)/falloc.o \
+				$(ObjDir)/findkey.o \
+				$(ObjDir)/gdbmclose.o \
+				$(ObjDir)/gdbmdelete.o \
+				$(ObjDir)/gdbmexists.o \
+				$(ObjDir)/gdbmfetch.o \
+				$(ObjDir)/gdbmopen.o \
+				$(ObjDir)/gdbmreorg.o \
+				$(ObjDir)/gdbmseq.o \
+				$(ObjDir)/gdbmsetopt.o \
+				$(ObjDir)/gdbmstore.o \
+				$(ObjDir)/gdbmsync.o \
+				$(ObjDir)/hash.o \
+				$(ObjDir)/update.o \
+				$(ObjDir)/global.o
+
+LibKwGdbmObjFiles_g	      = $(ObjDir)/bucket.go \
+				$(ObjDir)/falloc.go \
+				$(ObjDir)/findkey.go \
+				$(ObjDir)/gdbmclose.go \
+				$(ObjDir)/gdbmdelete.go \
+				$(ObjDir)/gdbmexists.go \
+				$(ObjDir)/gdbmfetch.go \
+				$(ObjDir)/gdbmopen.go \
+				$(ObjDir)/gdbmreorg.go \
+				$(ObjDir)/gdbmseq.go \
+				$(ObjDir)/gdbmsetopt.go \
+				$(ObjDir)/gdbmstore.go \
+				$(ObjDir)/gdbmsync.go \
+				$(ObjDir)/hash.go \
+				$(ObjDir)/update.go \
+				$(ObjDir)/global.go
+
+#################
+#    log lib    #
+#################
+
+LIB_KW_LOG_SONAME             = libkwlog.so.0
+LIB_KW_LOG_SONAME_G           = libkwlog_g.so.0
+
+LIB_KW_LOG_NAME               = $(LibDir)/libkwlog.so.0.0
+LIB_KW_LOG_NAME_G             = $(LibDir)/libkwlog_g.so.0.0
+
+LIB_KW_LOG_LNNAME             = $(LibDir)/libkwlog.so
+LIB_KW_LOG_LNNAME_G           = $(LibDir)/libkwlog_g.so
+
+LIB_KW_LOG_LDFLAGS            = -shared -Wl,-soname,$(LIB_KW_LOG_SONAME) $(LIB_LIBS)
+LIB_KW_LOG_LDFLAGS_G          = -shared -Wl,-soname,$(LIB_KW_LOG_SONAME_G) $(LIB_LIBS_G)
+
+LIB_KW_LOG_LIBS               =
+LIB_KW_LOG_LIBS_G             =
+
+LibKwLogObjFiles              = $(ObjDir)/kwlog.o
+
+LibKwLogObjFiles_g            = $(ObjDir)/kwlog.go
+
+#################
+#    xpm lib    #
+#################
+
+LIB_KW_XPM_SONAME             = libkwxpm.so.0
+LIB_KW_XPM_SONAME_G           = libkwxpm_g.so.0
+
+LIB_KW_XPM_NAME               = $(LibDir)/libkwxpm.so.0.0
+LIB_KW_XPM_NAME_G             = $(LibDir)/libkwxpm_g.so.0.0
+
+LIB_KW_XPM_LNNAME             = $(LibDir)/libkwxpm.so
+LIB_KW_XPM_LNNAME_G           = $(LibDir)/libkwxpm_g.so
+
+LIB_KW_XPM_LDFLAGS            = -shared -Wl,-soname,$(LIB_KW_XPM_SONAME) $(LIB_LIBS)
+LIB_KW_XPM_LDFLAGS_G	      = -shared -Wl,-soname,$(LIB_KW_XPM_SONAME_G) $(LIB_LIBS_G)
+
+LIB_KW_XPM_LIBS               = -lkwlog -lkwcolor
+LIB_KW_XPM_LIBS_G             = -lkwlog_g -lkwcolor_g
+
+LibKwXpmObjFiles	      = $(ObjDir)/kwxpm.o \
+				$(ObjDir)/kwxpm_xcolor.o
+
+LibKwXpmObjFiles_g            = $(ObjDir)/kwxpm.go \
+				$(ObjDir)/kwxpm_xcolor.go
+
+#####################
+#    regfile lib    #
+#####################
+
+LIB_KW_REGFILE_SONAME         = libkwregfile.so.0
+LIB_KW_REGFILE_SONAME_G       = libkwregfile_g.so.0
+
+LIB_KW_REGFILE_NAME           = $(LibDir)/libkwregfile.so.0.0
+LIB_KW_REGFILE_NAME_G         = $(LibDir)/libkwregfile_g.so.0.0
+
+LIB_KW_REGFILE_LNNAME         = $(LibDir)/libkwregfile.so
+LIB_KW_REGFILE_LNNAME_G       = $(LibDir)/libkwregfile_g.so
+
+LIB_KW_REGFILE_LDFLAGS        = -shared -Wl,-soname,$(LIB_KW_REGFILE_SONAME) $(LIB_LIBS)
+LIB_KW_REGFILE_LDFLAGS_G      = -shared -Wl,-soname,$(LIB_KW_REGFILE_SONAME_G) $(LIB_LIBS_G)
+
+LIB_KW_REGFILE_LIBS           = -lkwlog
+LIB_KW_REGFILE_LIBS_G         = -lkwlog_g
+
+LibKwRegfileObjFiles	      = $(ObjDir)/kwregfile.o
+
+LibKwRegfileObjFiles_g        = $(ObjDir)/kwregfile.go
+
+#####################
+#    kwcolor lib    #
+#####################
+
+LIB_KW_COLOR_SONAME         = libkwcolor.so.0
+LIB_KW_COLOR_SONAME_G       = libkwcolor_g.so.0
+
+LIB_KW_COLOR_NAME           = $(LibDir)/libkwcolor.so.0.0
+LIB_KW_COLOR_NAME_G         = $(LibDir)/libkwcolor_g.so.0.0
+
+LIB_KW_COLOR_LNNAME         = $(LibDir)/libkwcolor.so
+LIB_KW_COLOR_LNNAME_G       = $(LibDir)/libkwcolor_g.so
+
+LIB_KW_COLOR_LDFLAGS        = -shared -Wl,-soname,$(LIB_KW_COLOR_SONAME) $(LIB_LIBS)
+LIB_KW_COLOR_LDFLAGS_G      = -shared -Wl,-soname,$(LIB_KW_COLOR_SONAME_G) $(LIB_LIBS_G)
+
+LIB_KW_COLOR_LIBS           = -lkwlog
+LIB_KW_COLOR_LIBS_G         = -lkwlog_g
+
+LibKwColorObjFiles	    = $(ObjDir)/kwcolor.o
+
+LibKwColorObjFiles_g        = $(ObjDir)/kwcolor.go

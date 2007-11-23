@@ -1,0 +1,42 @@
+/* XPM */
+static char *size_2_xpm[] = {
+/* width height ncolors chars_per_pixel */
+"32 32 3 1 16 16",
+/* colors */
+"` c black",
+"a c none",
+"b c white",
+/* pixels */
+"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+"aaaaaaabbbbbbbaaaaaaaaaaaaaaaaaa",
+"aaaaaaab`````baaaaaaaaaaaaaaaaaa",
+"aaaaaaab````baaaaaaaaaaaaaaaaaaa",
+"aaaaaaab```baaaaaaaaaaaaaaaaaaaa",
+"aaaaaaab``b`baaaaaaaaaaaaaaaaaaa",
+"aaaaaaab`bab`baaaaaaaaaaaaaaaaaa",
+"aaaaaaabbaaab`baaaaaaaaaaaaaaaaa",
+"aaaaaaaaaaaaab`baaaaaaaaaaaaaaaa",
+"aaaaaaaaaaaaaab`baaaaaaaaaaaaaaa",
+"aaaaaaaaaaaaaaab`baaaaaaaaaaaaaa",
+"aaaaaaaaaaaaaaaab`baaabbaaaaaaaa",
+"aaaaaaaaaaaaaaaaab`bab`baaaaaaaa",
+"aaaaaaaaaaaaaaaaaab`b``baaaaaaaa",
+"aaaaaaaaaaaaaaaaaaab```baaaaaaaa",
+"aaaaaaaaaaaaaaaaaab````baaaaaaaa",
+"aaaaaaaaaaaaaaaaab`````baaaaaaaa",
+"aaaaaaaaaaaaaaaaabbbbbbbaaaaaaaa",
+"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+};

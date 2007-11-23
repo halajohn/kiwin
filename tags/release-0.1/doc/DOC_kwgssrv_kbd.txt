@@ -1,0 +1,386 @@
+/* -- The /dev/tty* devices --
+ * The /dev/tty1 device corresponds with our first console.
+ * When we read from it, we will read from its keyboard buffer,
+ * and when we write to it, we will write to its screen.
+ * /dev/tty2 corresponds to the second console, and so on.
+ * /dev/tty and /dev/tty0 are a bit different: they correspond to the current console.
+ *
+ * The linux console acts as a normal VT102 terminal,
+ * so it is possible to write control characters to the console to alter its behaviour.
+ *
+ * Poking around the screen is fun, but there is more to it.
+ * In linux programs can switch consoles, lock console switching,
+ * or merely recieve a signal when a switch is initiated.
+ * All these functions are described in <linux/vt.h>.
+ *
+ * The first thing we would like to do, is to figure out which virtual terminal we are on.
+ * To retrieve this information, we open /dev/tty or /dev/tty0, and do a VT_GETSTATE ioctl on it.
+ * the third argument is a pointer to a vt_stat structure.
+ *
+ * the number returned is not the tty device connected to standard output, but the currently active console.
+ * So if the console has switched, a different number is will result.
+ * If we are dying to know to where the standard streams are attached to,
+ * check the files in /proc/self/fd.
+ * Use the file named 0 for standard input, 1 for standard output and 2 for standard error.
+ *
+ * More information can be acquired. The next available virtual terminal.
+ * This is done by doing a VT_OPENQRY-ioctl.
+ * Open /dev/tty, then an ioctl has to be called.
+ *
+ *  ioctl (tty_file_descriptor, VT_OPENQRY, &new_tty_number);
+ *
+ * new_tty_number is an integer that is being loaded with the tty number of the first available console.
+ * It does not open anything, it just reports which one we can use without trouble.
+ * If no consoles are available, new_tty_number will be set to -1.
+ * The number returned does not guarantee that there is an appropriate /dev/ttyXX entry,
+ * nor that we are allowed to use it, so when we open the tty in order to use it,
+ * we should still check if the open() call succeeded.
+ */
+/* We can switch to a certain terminal by pressing Alt+Fx,
+ * where x is the terminal number we would like to switch to.
+ * Switching can be done by the software as well.
+ *
+ *  ioctl (tty_handler, VT_ACTIVATE, tty_number_to_activate);
+ *
+ * This ioctl switches the focus to tty_number_to_activate.
+ * This is what happens when we do a Alt-Fx, and it switches the VT.
+ * This can be incredible useful to be able to have a program change the VTs without
+ * having to do it manually.
+ *
+ * We can also suspend program execution until a certain terminal is activated. this is done by
+ *
+ *  ioctl (tty_handler, VT_WAITACTIVE, tty_number_to_wait_for);
+ *
+ * This will sleep until we switch to the VT it is watching.
+ * When this occurs, ioctl() will return true.
+ */
+/* -- Scancodes first --
+ *
+ * The usual PC keyboards are capable of producing three sets of scancodes.
+ * Writing 0xf0 followed by 1, 2 or 3 to port 0x60 will put the keyboard in scancode mode 1, 2 or 3.
+ * Writing 0xf0 followed by 0 queries the mode, resulting in a scancode byte 0x43, 0x41 or 0x3f
+ * from the keyboard. (Don't try this at home, kids. If we are not very careful, we will end up
+ * in a situation where rebooting is the only way out -- and control-alt-delete will not be
+ * available to shut the computer down correctly. See the accompanying listing of kbd_cmd.c for details.)
+ *
+ * Scancode mode 2 is the default. In this mode, a key press usually produces a value s in the range
+ * 0x01 ~ 0x5f(=95) and the corresponding key release produces s+0x80.
+ *
+ * In scancode mode 3, the only key releases that produce a scan code are of both Shift keys,
+ * and the left Ctrl and Alt keys; for all other keys only the key presses are noted.
+ * The produced scancodes are mostly equal to those for scancode mode 2.
+ *
+ * In scancode mode 1 most key releases produce the same values as in scancode mode 2,
+ * but for key presses there are entirely different, unrelated values. The details are somewhat messy.
+ *
+ * -- Scancodes to Keycodes
+ *
+ * Life would have been easy had there been a 1-1 correspondence between keys and scancodes.
+ * (And in fact there is, in scancode mode 3, but that does not suffice for Linux,
+ * since X requires both the key press and the key release events.)
+ *
+ * But as it is, a single key press can produce a sequence of up to six scancodes, 
+ * and the kernel has to parse the stream of scancodes and convert it into a series of
+ * key press and key release events.
+ * To this end, each key is provided with a unique keycode k in the range 1-127,
+ * and pressing key k produces keycode k, while releasing it produces keycode k+128.
+ * The assignment of key codes is in principle arbitrary (and has no relation to the key codes used by X),
+ * but at present the key code equals the scan code for those keys that produce a single scancode
+ * in the range 0x01-0x58.
+ *
+ * The parsing works by
+ *
+ * 1) recognizing the special sequence 0xe1 0x1d 0x45 0xe1 0x9d 0xc5 produced by the Pause key
+ * 2) throwing out any fake Shift-down and Shift-up codes, inserted by the keyboard to make the kernel
+ *    believe that we pressed Shift to undo the effect of NumLock
+ * 3) recognizing scancode pairs 0xe0 s
+ * 4) recognizing single scancodes s.
+ *
+ * Since s can take 127 values (0 is a keyboard error condition, and the high order bit
+ * indicates press/release) this means that parsing could result in 1+127+126=254 distinct keycodes.
+ * However, at present keycodes are restricted to the range 1-127 and
+ * we have to work a little to make things fit.
+ * (No doubt sooner or later keycodes will be integers instead of 7-bit quantities,
+ * and the keymaps will be sparse, but for the time being we can avoid that --
+ * since to my knowledge no actual PC keyboard has more than 127 keys.)
+ * So, there are small tables that assign a keycode to a scancode pair 0xe0 s or
+ * to a single scancode in the range 0x59-0x7f.
+ * In the default setting everything works for most current keyboards,
+ * but in case we have some strange keyboard, we can get the kernel to recognize an otherwise
+ * unrecognized key by filling an entry in these tables using the KDSETKEYCODE ioctl; see setkeycodes(8).
+ *
+ * Two keys are unusual in the sense that their keycode is not constant,
+ * but depends on modifiers.
+ * The PrintScrn key will yield keycode 84 when combined with either Alt key, but keycode 99 otherwise.
+ * The Pause key will yield keycode 101 when combined with either Ctrl key, but keycode 119 otherwise.
+ * (This has historic reasons, but might change, to free keycodes 99 and 119 for other purposes.)
+ *
+ * At present there is no way to tell X about strange key(board)s.
+ * The easiest solution would be to make X use keycodes instead of scancodes,
+ * so that the information about strange keys and the scancodes they produce is located a single place.
+ *
+ * A program can request to get keycodes by doing
+ *
+ *  ioctl(0, KDSKBMODE, K_MEDIUMRAW);
+ *
+ * For example, showkey does this.
+ * Warning: the details of the function of both the KDSETKEYCODE ioctl and
+ * the K_MEDIUMRAW keyboard mode are likely to change in the future.
+ */
+/* -- Keymaps --
+ *
+ * Keycodes are converted to key symbols by looking them up on the appropriate keymap.
+ * There are eight possible modifiers (shift keys), and the combination of currently
+ * active modifiers and locks determines the keymap used.
+ *
+ * Thus, what happens is approximately:
+ *
+ *  int shift_final = shift_state ^ kbd->lockstate;
+ *  ushort *key_map = key_maps[shift_final];
+ *  keysym = key_map[keycode];
+ *
+ * The eight modifiers are known as Shift, AltGr, Control, Alt, ShiftL, ShiftR, CtrlL and CtrlR.
+ * These labels have no intrinsic meaning, and the modifiers can be used for arbitrary purposes,
+ * except that the keymap for the Shift modifier determines the action of CapsLock
+ * (and that the Shift key partially suppresses keyboard application mode).
+ *
+ * By default Shift is bound to both Shift keys and Control keys and
+ * Alt and AltGr are bound to the left and right Alt keys.
+ * The remaining four modifiers are unbound in the default kernel.
+ * X is able to distinguish ShiftL and ShiftR, etc.
+ *
+ * Thus, there are 256 possible keymaps -- 
+ * for plain symbols, for Shift+symbol, for Ctrl+AltL+Shift+symbol, etc.
+ * Usually, not all of the keymaps will be allocated
+ * (combinations with more than three modifiers are rather unusual),
+ * and in fact the default kernel allocates only 7 keymaps,
+ * namely the plain, Shift, AltR, Ctrl, Ctrl+Shift, AltL and Ctrl+AltL maps.
+ * We can allocate more keymaps simply by filling some of their entries using loadkeys(1). 
+ *
+ * -- Key symbols --
+ *
+ * Key symbols are shorts, i.e., they consist of two bytes.
+ * In Unicode mode, this short is just the 16-bit value returned -- or,
+ * to be precise, the returned byte string is the UTF-8 representation of this Unicode character.
+ * The keyboard is put into Unicode mode by
+ *
+ *  ioctl(0, KDSKBMODE, K_UNICODE);
+ *
+ * When not in Unicode mode, the high order byte is viewed as a type,
+ * and the low order byte as a value, and we do:
+ *
+ *  type = KTYP(keysym);
+ *
+ *  (*key_handler[type])(keysym & 0xff, up_flag);
+ *
+ * The type selects a function from the array key_handler:
+ *
+ * static k_hand key_handler[16] = {
+ *   do_self, do_fn, do_spec, do_pad, do_dead,
+ *   do_cons, do_cur, do_shift, do_meta, do_ascii,
+ *   do_lock, do_lowercase, do_ignore, do_ignore,
+ *   do_ignore, do_ignore
+ * };
+ *
+ * 0) do_self <KT_LATIN> :
+ *    commonly used for ordinary keys, just returns the given value,
+ *    after possibly handling pending dead diacriticals.
+ *
+ * 1) do_fn <KT_FN> :
+ *    commonly used for function keys, returns the string func_table[value].
+ *    Strings can be assigned using loadkeys(1).
+ *
+ * 2) do_spec <KT_SPEC> :
+ *    is used for special actions, not necessarily related to character input.
+ *    It does spec_fn_table[value]();, where
+ *
+ *      static void_fnp spec_fn_table[] = {
+ *         do_null, enter, show_ptregs, show_mem,
+ *         show_state, send_intr, lastcons, caps_toggle,
+ *         num, hold, scroll_forw, scroll_back, boot_it,
+ *         caps_on, compose, SAK, decr_console,
+ *         incr_console, spawn_console, bare_num
+ *      };
+ *
+ * 3) do_pad <KT_PAD> :
+ *    commonly used for the keypad keys.
+ *    In keyboard application mode this produces some three-character string ESC O X
+ *    (with variable X depending on the key), provided that Shift is not pressed simultaneously.
+ *    Otherwise, when NumLock is on, we get the symbol printed on the key (0123456789.+ - / * and CR).
+ *
+ *    Finally, if NumLock is not on, the four arrow keys yield ESC [ X
+ *    (with X = A, B, C, or D) when not in cursor key mode, and ESC O X otherwise,
+ *     while the remaining keys are treated as function keys, and yield the associated string.
+ *     For the middle key (keypad-5) we find four possibilities:
+ *
+ *    #  in keyboard application mode (unshifted), ESC O u
+ *    #  in keyboard application mode, shifted, without NumLock, ESC O G
+ *    #  otherwise, without NumLock, ESC [ G
+ *    #  but with NumLock, 5.
+ *
+ *    If we think this is unnecessarily complicated, I agree.
+ *    It is a messy combination of VT100 and DOS keyboard behavior.
+ *    However, so far suggestions for change have met with too much resistance.
+ *
+ * 4) do_dead <KT_DEAD> :
+ *    is used for "dead keys" that provide the following key with a diacritical.
+ *    By default there are no dead keys.
+ *    One may define keys producing a dead grave, acute, circumflex, tilde, or diaeresis.
+ *    How a dead key combines with a following key is specified using the compose mechanism discussed above.
+ *
+ * 5) do_cons <KT_CONS> :
+ *    is used for switching consoles.
+ *    By default the combinations (Ctrl-)AltL-Fn switch to virtual console n for n in the range 1-12,
+ *    and AltR-Fn switches to console n+12 for these same n.
+ *
+ * 6) do_cur <KT_CUR> :
+ *    handles cursor keys.
+ *    One gets either ESC [ X or ESC O X (with X one of A, B, C, or D) depending on the cursor key mode.
+ *    (One sets or clears cursor key mode by sending ESC [ ? 1 h or ESC [ ? 1 l to the console.)
+ *
+ * 7) do_shift <KT_SHIFT> :
+ *    maintains the shift state (the up/down state of the modifier keys).
+ *
+ * 8) do_meta <KT_META> :
+ *    is commonly used for ordinary keys combined with AltL.
+ *    If the keyboard is in meta mode, this will yield a pair ESC x;
+ *    otherwise x | 0x80 is produced, where x is the key pressed in both cases.
+ *    (We can set or clear meta mode using the tiny utility setmetamode(1).)
+ *
+ * 9) do_ascii <KT_ASCII> :
+ *    is used to construct given codes: press AltL, type a decimal code on the keypad, and release AltL.
+ *    This yields the character with the given code.
+ *    In Unicode mode the same works in hexadecimal:
+ *    press AltR, type a hexadecimal code on the keypad,
+ *    possibly using the ordinary a, b, c, d, e, and f keys, and release AltR.
+ *    This yields the Unicode symbol with the code given.
+ *
+ * 10) do_lock <KT_LOCK> :
+ *     toggles the state of the corresponding modifier key lock.
+ *     (Recall the line we saw above: shift_final = shift_state ^ kbd->lockstate.)
+ *     Thus, if we have our Cyrillic keys under combinations with AltR,
+ *     we can use AltR together with other keys to get only a few Cyrillic symbols,
+ *     but should type AltGr_Lock if we plan to type a longish Cyrillic text.
+ *     (Note that the right Alt key, that I called AltR here, is usually known as AltGr.)
+ *
+ * 11) do_lowercase <KT_LETTER> :
+ *     is used for the handling of CapsLock. Note that CapsLock is different from ShiftLock.
+ *     With ShiftLock, a digit 4 will be turned into a dollar sign (for default keyboard layout),
+ *     but CapsLock will only affect lower case letters,
+ *     and turn them into the corresponding upper case letters.
+ *     Type 11 is equivalent to type 0,
+ *     with the added information that the symbol may be affected by CapsLock
+ *     (and the resulting character is the one that would have resulted from pressing Shift).
+ * 
+ * As already mentioned, almost all of this can be changed dynamically by use of loadkeys(1).
+ * The current state is dumped by dumpkeys(1). A list of known symbols is provided by dumpkeys -l.
+ * The keycodes associated with the various keys can be found using showkey(1).
+ * These and many other utilities for keyboard and console can be found in kbd-0.90.tar.gz
+ * on ftp.funet.fi and its mirror sites.
+ */
+/*  struct kbentry {
+ *      unsigned char  kb_table;
+ *      unsigned char  kb_index;
+ *      unsigned short kb_value;
+ *  };
+ * 
+ * The translation to ASCII Codes in the kernel is done via tables
+ * (the same tables are changed if we run the command loadkeys,
+ *  which loads the correct keytable for our country).
+ * We can reach this tables with the ioctl's KDGKBENT and KDSKBENT.
+ * They expect a pointer to a structure of the type kbentry (see /usr/src/linux/include/linux/kd.h).
+ *
+ * If we want to get an entry we have to set the values kb_table and kb_index,
+ * if we want to set an entry kb_value must also be set.
+ *
+ * kb_index is the raw _keycode_, kb_table contains bits for the keys Shift,
+ * Alt, AltGr and Ctrl (it is some kind of table selector, for making things like Shift+A easier).
+ * kb_value contains the _ASCII_ Code. For simple key handling this should be enough,
+ * the real key translation in the kernel seems to be a little bit more complex
+ * (think of escape sequences if we press a cursor key),
+ * in such cases kb_value contains some magic values.
+ */
+/* ::The Keyboard modes::
+ *
+ * The keyboard modes control the way linux informs our program on what's going on 
+ * with the keys on our keyboard. There are 4 modes. The default mode is K_XLATE.
+ * The keyboard driver translates signals from the keyboard into _ascii_ characters.
+ * A different mode can be chosen using the KDSKBMODE ioctl.
+ * The current mode can be queried using the KDGKBMODE ioctl.
+ *
+ *  int mode;
+ *  ioctl (current_vt, KDGKBMODE, &mode);
+ *  ioctl (current_vt, KDSKBMODE, K_RAW);
+ *
+ * The four modes are:
+ *
+ * K_RAW:
+ * which means no translation will be done. Our keyboard sends a make signal
+ * when we press a key, and if we hold the key down, it will send more make signals
+ * using the current delay and repeat rate settings. When a key is released,
+ * a break signal is sent. These signals vary from one keyboard to another.
+ * Many countries do have specific keyboard layouts. To make a difference,
+ * some keyboard manufacturers add keys, usually with their brand name on it.
+ * To let our software use these keys, we need to get into raw mode,
+ * or load the code in one of our keymaps.
+ *
+ * There is one thing we should really really be aware of.
+ * As the kernel does not touch keyboard input any more,
+ * it does _not_ do console switching when we press the Alt+Fn where Fn is
+ * one of the keys of the top row of our keyboard.
+ * Nor will our shell be able to track Ctrl-Break. Make sure our program will
+ * restore the keyboard mode properly.
+ * If we ever experience a shell with our keyboard in raw mode, remember that gpm is our friend.
+ *
+ * K_MEDIUMRAW:
+ * lets the kernel translate all scancodes received from the keyboard to so called keycodes.
+ * Keycodes are the same as their scancode counterparts for single code scancodes.
+ * Multi byte scancodes use free single byte keycodes.
+ * Both make and break codes are sent just like in raw mode.
+ *
+ * K_XLATE:
+ * filters the keycodes through a keymap before it sends the bytes to our program.
+ * More on reading, altering, and flipping through keymaps later on.
+ *
+ * K_UNICODE:
+ * translates just like K_XLATE, but not to ASCII-codes, but to UTF-8.
+ * UTF-8 stands fot Unicode Transformation Format. It is designed to translate
+ * unicode characters to byte codes. These codes have a length that varies from 1 to 6 bytes.
+ * The first 127 one byte codes of the set are the same as the first 127 ascii characters.
+ * (see www.utf8.org) The keymaps for these tables can be altered.
+ */
+/* !! ioctl's are undocumented Linux internals,                                  !!
+ * !! liable to be changed without warning. Use POSIX functions where available. !!
+ * The following Linux-peculiar ioctl() requests are supported.
+ * Each requires a third argument, assumed here to be argp.
+ *
+ * KDGETLED
+ * Get state of LEDs. argp points to a long int.
+ * The lower three bits of *argp are set to the state of the LEDs, as follows:
+ *
+ *  LED_CAP    0x04   caps lock led
+ *  LEC_NUM    0x02   num lock led
+ *  LED_SCR    0x01   scroll lock led
+ *
+ * KDSETLED
+ * Set the LEDs. The LEDs are set to correspond to the lower three bits of argp.
+ * However, if a higher order bit is set, the LEDs revert to normal:
+ * displaying the state of the keyboard functions of caps lock, num lock, and scroll lock.
+ *
+ * Before kernel version 1.1.54, the leds just reflected the state of the corresponding keyboard flags,
+ * and KDGETLED/KDSETLED would also change the keyboard flags.
+ * Since 1.1.54 the leds can be made to display arbitrary information,
+ * but by default they display the keyboard flags.
+ * The following two ioctl's are used to access the keyboard flags.
+ *
+ * KDGKBLED
+ * Get keyboard flags CapsLock, NumLock, ScrollLock (not lights).
+ * argp points to a char which is set to the flag state.
+ * The low order three bits (mask 0x7) get the current flag state,
+ * and the low order bits of the next nibble (mask 0x70) get the default flag state. (Since 1.1.54.)
+ *
+ * KDSKBLED
+ * Set keyboard flags CapsLock, NumLock, ScrollLock (not lights).
+ * argp has the desired flag state. The low order three bits (mask 0x7) have the flag state,
+ * and the low order bits of the next nibble (mask 0x70) have the default flag state. (Since 1.1.54.)
+ */
